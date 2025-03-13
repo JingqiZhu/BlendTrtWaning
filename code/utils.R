@@ -167,14 +167,14 @@ compute_blended_hazard <- function(h_int, h_ext, rebased_time, t1, t2, a, b, t_s
   return(data.frame(time = t_seq, est = h_blended_est))
 }
 
-# Function to plot blended hazard (vs fitted internal/external hazard)
+# Function to plot blended hazard (vs fitted internal & external hazard)
 plot_blended_hazard <- function(h_blended, h_int, h_ext, rebased_time, t1, t2, title) {
   ggplot() +
     geom_line(data = h_blended, aes(x = time, y = est, color = "Blended Hazard"), linewidth = 1) + 
     geom_line(data = h_int, aes(x = time, y = est, color = "Fitted Internal Hazard"), linewidth = 1, linetype = 'dashed') +
     geom_line(data = subset(h_ext, time >= rebased_time), aes(x = time, y = est, color = "Fitted External Hazard"), linewidth = 1, linetype = 'dashed') +
     geom_vline(xintercept = c(t1, t2), linetype="dashed", color = "grey") +
-    scale_x_continuous(limits = c(0, 84), breaks = seq(0, 84, 12)) + ylim(0,0.065) +
+    scale_x_continuous(limits = c(0, 84), breaks = seq(0, 84, 12)) + ylim(0, 0.065) +
     scale_color_brewer(palette = "Set1", name = "Model") +
     theme_classic() + theme(legend.position = c(0.75, 0.8), text = element_text(size = 12), legend.key.width = unit(1, "cm")) +
     labs(title = title, x = "Time (months)", y = "Hazard")

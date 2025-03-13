@@ -1,16 +1,18 @@
+# `survminer` for Kaplan-Meier visualisation
+# `survHE` for parametric modelling of survival data
+# `muhaz` for non-parametric smoothed hazard estimation
+# `landest` for survival estimation from Kaplan-Meier
+# `RColorBrewer` for colour mapping
+# `pracma` for numerical estimation of restricted mean survival time
+# these also load dependencies: ggplot2, ggpubr, survival, flexsurv, dplyr
 library(pacman)
-p_load(survminer, survHE, muhaz, RColorBrewer, landest)
-#library(survminer) # include ggplot2, ggpubr
-#library(survHE) # include survival, flexsurv, dplyr
-#library(muhaz)
-#library(RColorBrewer)
-#library(landest)
-#library(pracma)
-#library(purrr)
-source('utils.R')
+p_load(survminer, survHE, muhaz, RColorBrewer, landest, pracma) 
+
+# Load utility functions
+source('code/utils.R')
 
 # 0. Load digitised data
-load('./digitised_data.Rdata')
+load('data/digitised_data.Rdata')
 
 # 0.1. Plot KM of internal data (KEYNOTE-006 IA2)
 OS.int <- rbind(OS.Pem, OS.Ipi)
@@ -242,12 +244,12 @@ h_Pem_blended <- compute_blended_hazard(h_Pem_selected, h_Scha_selected, rebased
 h_Ipi_blended <- compute_blended_hazard(h_Ipi_selected, h_Scha_selected, rebased_time, t1, t2, a, b, t_seq)
 h_Ipi_blended$est[1] <- 0
 
-# Plot blended hazard (vs fitted internal/external hazard)
+# Plot blended hazard (vs fitted internal & external hazard)
 hazplot_Pem_blended <- plot_blended_hazard(h_Pem_blended, h_Pem_selected, h_Scha_selected, rebased_time, t1, t2, 'Pembrolizumab Arm')
 hazplot_Ipi_blended <- plot_blended_hazard(h_Ipi_blended, h_Ipi_selected, h_Scha_selected, rebased_time, t1, t2, 'Ipilimumab Arm')
 print(ggarrange(hazplot_Pem_blended, hazplot_Ipi_blended))
 
-# 5. Blended method vs updated 7-year data & TA366 base case
+# 5. Comparison of extrapolated hazard and survival curves (blended method vs updated 7-year data vs TA366 base case)
 # 5.1. Smoothed hazard of updated 7-year data
 haz_Pem_7y <- muhaz(OS.Pem.7y$Time, OS.Pem.7y$Event, bw.smooth=6, max.time=84, n.est.grid=841)
 haz_Ipi_7y <- muhaz(OS.Ipi.7y$Time, OS.Ipi.7y$Event, bw.smooth=6, max.time=84, n.est.grid=841)
@@ -301,3 +303,44 @@ S_Ipi_TA366 <- S_Ipi_rebased_time * exp(-cumsum(subset(h_TA366, time >= rebased_
 # Comparison of survival
 plot_survival_comparsion(S_Pem_blended, S_Ipi_blended, km_Pem_7y, km_Ipi_7y, S_Pem_TA366, S_Ipi_TA366, rebased_time_TA366 ,t_seq)
 
+# 6. Comparison of 7-year RMST and incremental RMST
+# Blended model
+RMST_Pem_blended <- round(trapz(t_seq, S_Pem_blended) / 12, 2)
+RMST_Ipi_blended <- round(trapz(t_seq, S_Ipi_blended) / 12, 2)
+inc_RMST_blended <- RMST_Pem_blended - RMST_Ipi_blended
+
+# Updated 7-year data
+S_Pem_7y <- surv.km(OS.Pem.7y$Time, OS.Pem.7y$Event, t_seq)$S.estimate
+S_Ipi_7y <- surv.km(OS.Ipi.7y$Time, OS.Ipi.7y$Event, t_seq)$S.estimate
+S_Pem_7y[is.na(S_Pem_7y)] <- 1
+S_Ipi_7y[is.na(S_Ipi_7y)] <- 1
+
+RMST_Pem_7y <- round(trapz(t_seq, S_Pem_7y) / 12, 2)
+RMST_Ipi_7y <- round(trapz(t_seq, S_Ipi_7y) / 12, 2)
+inc_RMST_7y <- RMST_Pem_7y - RMST_Ipi_7y
+
+# TA366 base case (0-12 mo Kaplan-Meier + 12-84 mo model fit)
+t_seq_km <- t_seq[t_seq < 12]
+
+S_Pem_TA366_km <- surv.km(OS.Pem$Time, OS.Pem$Event, t_seq_km)$S.estimate
+S_Pem_TA366_km[is.na(S_Pem_TA366_km)] <- 1
+S_Pem_TA366_all <- c(S_Pem_TA366_km, S_Pem_TA366)
+
+S_Ipi_TA366_km <- surv.km(OS.Ipi$Time, OS.Ipi$Event, t_seq_km)$S.estimate
+S_Ipi_TA366_km[is.na(S_Ipi_TA366_km)] <- 1
+S_Ipi_TA366_all <- c(S_Ipi_TA366_km, S_Ipi_TA366)
+
+RMST_Pem_TA366 <- round(trapz(t_seq, S_Pem_TA366_all) / 12, 2)
+RMST_Ipi_TA366 <- round(trapz(t_seq, S_Ipi_TA366_all) / 12, 2)
+inc_RMST_TA366 <- RMST_Pem_TA366 - RMST_Ipi_TA366
+
+# RMST table
+RMST_table <- matrix(
+  c(RMST_Pem_blended, RMST_Ipi_blended, inc_RMST_blended,
+    RMST_Pem_7y, RMST_Ipi_7y, inc_RMST_7y,
+    RMST_Pem_TA366, RMST_Ipi_TA366, inc_RMST_TA366),
+  nrow = 3, byrow = TRUE
+)
+colnames(RMST_table) <- c("Pembrolizumab RMST 7y", "Ipilimumab RMST 7y", "Incremental RMST 7y")
+rownames(RMST_table) <- c("Blended Method", "7-Year Updated", "TA366 Base Case")
+print(RMST_table)
