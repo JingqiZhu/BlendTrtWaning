@@ -15,7 +15,7 @@ plot_hazard <- function(models_to_plot, haz, title){
       ggtitle(model_name)
   })
   plot <- annotate_figure(ggarrange(plotlist = hazard_plots, nrow = 1), top = text_grob(title, face = 'bold'))
-  print(plot)
+  return(plot)
 }
 
 # Function to plot survival
@@ -36,7 +36,7 @@ plot_survival <- function(models_to_plot, km, time_points, title){
     xlab('Time (months)') + ylab('Overall Survival') + 
     ylim(0,1) + scale_x_continuous(limits = c(0,24), breaks = seq(0,24,by=4)) +
     ggtitle(title) + theme_classic() + theme(legend.position = 'top')
-  print(plot)
+  return(plot)
 }
 
 # Function to plot rebased hazard
@@ -65,9 +65,8 @@ plot_rebased_hazard <- function(models_to_plot, haz, rebased_time, title) {
     nrow <- 2
     ncol <- ceiling(num_models / 2) 
   }
-  plot <- annotate_figure(ggarrange(plotlist = hazard_plots, nrow = nrow, ncol = ncol), 
+  annotate_figure(ggarrange(plotlist = hazard_plots, nrow = nrow, ncol = ncol), 
                           top = text_grob(title, face = 'bold'))
-  print(plot)
 }
 
 # Function to plot rebased survival
@@ -96,8 +95,7 @@ plot_rebased_survival <- function(models_to_plot, km, rebased_time, time_points,
     xlab('Time (months)') + ylab('Overall Survival') + 
     ylim(0,1) + scale_x_continuous(limits = c(0,84), breaks = seq(0,84,by=4)) +
     ggtitle(title) + theme_classic() + theme(legend.position = 'top')
-  
-  print(plot)
+  return(plot)
 }
 
 # Function to extract survival and hazard of selected models
@@ -210,5 +208,5 @@ plot_survival_comparison <- function(S_Pem_blended, S_Ipi_blended, km_Pem_update
     scale_color_brewer(palette = 'Set1', name = 'Model') +
     scale_linetype_manual(name = 'Treatment', values = c('Pembrolizumab' = 'solid', 'Ipilimumab' = 'dashed')) +
     theme_classic() +
-    theme(legend.direction = 'vertical', legend.box = 'vertical', legend.position = c(0.8, 0.8), legend.key.width = unit(1, 'cm'))
+    theme(legend.direction = 'vertical', legend.box = 'vertical', legend.position = c(0.8, 0.75), legend.key.width = unit(1, 'cm'))
 }

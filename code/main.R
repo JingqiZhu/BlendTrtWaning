@@ -79,7 +79,7 @@ models <- list(
 )
 
 aic_bic_summary_Pem_spline_1 <- do.call(rbind, lapply(names(models), function(model_name) {
-  data.frame(Model = model_name, AIC = AIC(models[[model_name]]), BIC = BIC(models[[model_name]]))
+  data.frame(row.names = model_name, AIC = AIC(models[[model_name]]), BIC = BIC(models[[model_name]]))
 }))
 
 print(aic_bic_summary_Pem_spline_1)
@@ -103,7 +103,7 @@ models <- list(
 )
 
 aic_bic_summary_Pem_spline_2 <- do.call(rbind, lapply(names(models), function(model_name) {
-  data.frame(Model = model_name, AIC = AIC(models[[model_name]]), BIC = BIC(models[[model_name]]))
+  data.frame(row.names = model_name, AIC = AIC(models[[model_name]]), BIC = BIC(models[[model_name]]))
 }))
 
 print(aic_bic_summary_Pem_spline_2)
@@ -127,16 +127,19 @@ models <- list(
 )
 
 aic_bic_summary_Pem_spline_3 <- do.call(rbind, lapply(names(models), function(model_name) {
-  data.frame(Model = model_name, AIC = AIC(models[[model_name]]), BIC = BIC(models[[model_name]]))
+  data.frame(row.names = model_name, AIC = AIC(models[[model_name]]), BIC = BIC(models[[model_name]]))
 }))
 
 print(aic_bic_summary_Pem_spline_3)
+
+write.csv(rbind(aic_bic_summary_Pem_param, aic_bic_summary_Pem_spline_1, aic_bic_summary_Pem_spline_2, aic_bic_summary_Pem_spline_3), 
+          'tables/model selection/aic_bic_int_pem_selection.csv', row.names = T)
 
 # Visual inspection of hazard
 plot_hazard(models_to_plot = models, haz = haz_Pem, title = 'Pembrolizumab - 3-Knot Cubic Spline Models')
 
 # Visual inspection of survival
-plot_survival(models_to_plot = models, km = km_Pem, time_points = seq(0,24,0.1), title = 'Pembrolizumab - 3-Knot Cubic Spline Models')
+plot_survival(models_to_plot = models, km = km_Pem, time_points = seq(0, 24, 0.1), title = 'Pembrolizumab - 3-Knot Cubic Spline Models')
 
 # 2. Internal model for Ipilimumab arm
 # Non-parametric smoothed hazard - increasing then decreasing
@@ -176,20 +179,22 @@ models <- list(
 )
 
 aic_bic_summary_Ipi_spline_1 <- do.call(rbind, lapply(names(models), function(model_name) {
-  data.frame(Model = model_name, AIC = AIC(models[[model_name]]), BIC = BIC(models[[model_name]]))
+  data.frame(row.names = model_name, AIC = AIC(models[[model_name]]), BIC = BIC(models[[model_name]]))
 }))
 
-print(aic_bic_summary_Ipi_spline_1)
+write.csv(rbind(aic_bic_summary_Ipi_param, aic_bic_summary_Ipi_spline_1), 
+          'tables/model selection/aic_bic_int_ipi_selection.csv', row.names = T)
 
 # Visual inspection of hazard
 plot_hazard(models_to_plot = models, haz = haz_Ipi, title = 'Ipilimumab - 1-Knot Cubic Spline Models')
 
 # Visual inspection of survival
-plot_survival(models_to_plot = models, km = km_Ipi, time_points = seq(0,24,0.1), title = 'Ipilimumab - 1-Knot Cubic Spline Models')
+plot_survival(models_to_plot = models, km = km_Ipi, time_points = seq(0, 24, 0.1), title = 'Ipilimumab - 1-Knot Cubic Spline Models')
 
 # 3. External model for both arms
 haz_Scha <- muhaz(OS.Scha$Time, OS.Scha$Event, bw.smooth = 6)
 plot(haz_Scha, xlab='Time (months)', main='Schadendorf Study (2015) -  Smoothed Hazard')
+abline(v = 12, col = 'grey', lty = 2)
 
 # 3.1. Rebased standard parametric model
 rebased_time <- 13.85 # rebased_time = median follow-up of KEYNOTE006 IA2
@@ -200,6 +205,7 @@ m_Scha_rebased = fit.models(formula = formula, data = OS.Scha.rebased, distr = m
 # AIC, BIC
 aic_bic_summary_Scha_rebased <- data.frame(AIC = sapply(m_Scha_rebased$models, AIC), BIC = sapply(m_Scha_rebased$models, BIC))
 print(aic_bic_summary_Scha_rebased)
+write.csv(aic_bic_summary_Scha_rebased, 'tables/model selection/aic_bic_ext_selection.csv', row.names = T)
 
 # Visual inspection of hazard
 models <- list(
@@ -212,11 +218,11 @@ models <- list(
 
 # Visual inspection of survival
 plot_rebased_hazard(models_to_plot = models, haz = haz_Scha, rebased_time = rebased_time, title = 
-                    'Schadendorf (2015) - Hazard of Rebased Parametric Models')
+                    'Schadendorf (2015) - Hazard of Parametric Models Rebased at 13.85 Months')
 
 km_Scha <- survfit(Surv(Time, Event) ~ 1, data = OS.Scha)
-plot_rebased_survival(models_to_plot = models, km = km_Scha, rebased_time = rebased_time, time_points = seq(0,84,by=0.1), 
-                      title = 'Schadendorf (2015) - Survival of Rebased Parametric Models')
+plot_rebased_survival(models_to_plot = models, km = km_Scha, rebased_time = rebased_time, time_points = seq(0, 84, by = 0.1), 
+                      title = 'Schadendorf (2015) - Survival of Parametric Models Rebased at 13.85 Months')
 
 # 4. Blended method implementation
 # Selected models
@@ -226,10 +232,10 @@ m_Scha_selected <- m_Scha_rebased$models$Gompertz # External (both arms): rebase
 rebased_time <- 13.85
 
 # Parameters for blended method
-t1 <- 24
+t1 <- 14
 t2 <- 60
-a <- 5
-b <- 5
+a <- 0.2
+b <- 0.2
 
 # Time points
 time_horizon <- 84 
@@ -245,9 +251,9 @@ h_Ipi_blended <- compute_blended_hazard(h_Ipi_selected, h_Scha_selected, rebased
 h_Ipi_blended$est[1] <- 0
 
 # Plot blended hazard (vs fitted internal & external hazard)
-hazplot_Pem_blended <- plot_blended_hazard(h_Pem_blended, h_Pem_selected, h_Scha_selected, rebased_time, t1, t2, 'Pembrolizumab Arm')
-hazplot_Ipi_blended <- plot_blended_hazard(h_Ipi_blended, h_Ipi_selected, h_Scha_selected, rebased_time, t1, t2, 'Ipilimumab Arm')
-print(ggarrange(hazplot_Pem_blended, hazplot_Ipi_blended))
+hazplot_Pem_blended <- plot_blended_hazard(h_Pem_blended, h_Pem_selected, h_Scha_selected, rebased_time, t1, t2, 'Pembrolizumab')
+hazplot_Ipi_blended <- plot_blended_hazard(h_Ipi_blended, h_Ipi_selected, h_Scha_selected, rebased_time, t1, t2, 'Ipilimumab')
+hazplot_blended <- ggarrange(hazplot_Pem_blended, hazplot_Ipi_blended)
 
 # 5. Comparison of extrapolated hazard and survival curves (blended method vs updated 7-year data vs TA366 base case)
 # 5.1. Smoothed hazard of updated 7-year data
@@ -261,7 +267,8 @@ OS.Scha.rebased_TA366$Time <-  OS.Scha.rebased_TA366$Time - rebased_time_TA366
 m_Scha_rebased_TA366 = fit.models(formula = formula, data = OS.Scha.rebased_TA366, distr = mods) 
 
 aic_bic_summary_Scha_rebased_TA366 <- data.frame(AIC = sapply(m_Scha_rebased_TA366$models, AIC), BIC = sapply(m_Scha_rebased_TA366$models, BIC))
-print(aic_bic_summary_Scha_rebased_TA366)
+
+write.csv(aic_bic_summary_Scha_rebased_TA366, 'tables/model selection/aic_bic_TA366_selection.csv', row.names = T)
 
 models <- list(
   'Rebased Weibull' = m_Scha_rebased_TA366$models$`Weibull (AFT)`,
@@ -271,19 +278,19 @@ models <- list(
   'Rebased Lognormal' = m_Scha_rebased_TA366$models$`log-Normal`
 )
 
-plot_rebased_hazard(models_to_plot = models, haz = haz_Scha, rebased_time = rebased_time_TA366, title = 
+hazplot_TA366_selection <- plot_rebased_hazard(models_to_plot = models, haz = haz_Scha, rebased_time = rebased_time_TA366, title = 
                       'Schadendorf (2015) - Hazard of Parametric Models Rebased at 12 Months')
 
-plot_rebased_survival(models_to_plot = models, km = km_Scha, rebased_time = rebased_time_TA366, time_points = seq(0,84,by=0.1), 
+survplot_TA366_selection <- plot_rebased_survival(models_to_plot = models, km = km_Scha, rebased_time = rebased_time_TA366, time_points = seq(0,84,by=0.1), 
                       title = 'Schadendorf (2015) - Survival of Parametric Models Rebased at 12 Months')
 
 # Extract hazard of TA366
 h_TA366 <- extract_survival_hazard(m_Scha_rebased_TA366$models$Gompertz, t_seq, rebased_time_TA366)$h
 
 # 5.3. Comparison at hazard scale (blended vs updated vs TA366)
-hazplot_Pem_comparison <- plot_hazard_comparison(h_Pem_blended, haz_Pem_7y, h_TA366, rebased_time_TA366, t1, t2, 'Pembrolizumab Arm')
-hazplot_Ipi_comparison <- plot_hazard_comparison(h_Ipi_blended, haz_Ipi_7y, h_TA366, rebased_time_TA366, t1, t2, 'Ipilimumab Arm')
-print(ggarrange(hazplot_Pem_comparison, hazplot_Ipi_comparison))
+hazplot_Pem_comparison <- plot_hazard_comparison(h_Pem_blended, haz_Pem_7y, h_TA366, rebased_time_TA366, t1, t2, 'Pembrolizumab')
+hazplot_Ipi_comparison <- plot_hazard_comparison(h_Ipi_blended, haz_Ipi_7y, h_TA366, rebased_time_TA366, t1, t2, 'Ipilimumab')
+hazplot_comparison <-  ggarrange(hazplot_Pem_comparison, hazplot_Ipi_comparison)
 
 # 5.4. Comparison at survival scale (blended vs updated vs TA366)
 # KM of 7-year follow-up data
@@ -345,4 +352,21 @@ RMST_table <- matrix(
 colnames(RMST_table) <- c('Pembrolizumab RMST 7y', 'Ipilimumab RMST 7y', 'Incremental RMST 7y')
 rownames(RMST_table) <- c('Blended Method', '7-Year Updated', 'TA366 Base Case')
 
-write.csv(RMST_table, "tables/RMST_base_case.csv", row.names = T)
+# Save output figures and tables
+if (t1 == 24 & t2 == 60 & a == 5 & b == 5){
+  ggsave(paste0('figures/base case/hazplot_blended_', t1, '_', t2, '_', a, '_', b, '.png'), 
+         hazplot_blended, width = 8, height = 5, units = 'in')
+  ggsave(paste0('figures/base case/hazplot_comparison_', t1, '_', t2, '_', a, '_', b, '.png'), 
+         hazplot_comparison, width = 8, height = 5, units = 'in')
+  ggsave(paste0('figures/base case/survplot_comparison_', t1, '_', t2, '_', a, '_', b, '.png'), 
+         survplot_comparison, width = 6, height = 5, units = 'in')
+  write.csv(RMST_table, paste0('tables/base case/RMST_', t1, '_', t2, '_', a, '_', b, '.csv'), row.names = T)
+} else{
+  ggsave(paste0('figures/sensitivity analysis/hazplot_blended_', t1, '_', t2, '_', a, '_', b, '.png'), 
+         hazplot_blended, width = 8, height = 5, units = 'in')
+  ggsave(paste0('figures/sensitivity analysis/hazplot_comparison_', t1, '_', t2, '_', a, '_', b, '.png'), 
+         hazplot_comparison, width = 8, height = 5, units = 'in')
+  ggsave(paste0('figures/sensitivity analysis/survplot_comparison_', t1, '_', t2, '_', a, '_', b, '.png'), 
+         survplot_comparison, width = 6, height = 5, units = 'in')
+  write.csv(RMST_table, paste0('tables/sensitivity analysis/RMST_', t1, '_', t2, '_', a, '_', b, '.csv'), row.names = T)
+}
