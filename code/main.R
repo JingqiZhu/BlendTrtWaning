@@ -50,39 +50,32 @@ formula <- Surv(Time,Event) ~ 1
 mods <- c('exp', 'weibull', 'gompertz', 'gengamma', 'loglogistic', 'lognormal')
 m_Pem_param <- fit.models(formula = formula, data = OS.Pem, distr = mods)
 
-# AIC, BIC
-aic_bic_summary_Pem_param <- data.frame(AIC = sapply(m_Pem_param$models, AIC), BIC = sapply(m_Pem_param$models, BIC))
-print(aic_bic_summary_Pem_param)
-
-# Visual inspection of hazard plot
-
 models <- list(
   'Generalised Gamma' = m_Pem_param$models$`Gen. Gamma`,
   'Log-Logistic' = m_Pem_param$models$`log-Logistic`,
   'Log-Normal' = m_Pem_param$models$`log-Normal`
 )
 
+# Visual inspection of hazard plot
 plot_hazard(models_to_plot = models, haz = haz_Pem, title = 'Pembrolizumab - Standard Parametric Models')
 
 # Visual inspection of survival plot
 km_Pem <- survfit(Surv(Time, Event) ~ Treatment, data = OS.Pem)
 plot_survival(models_to_plot = models, km = km_Pem, time_points = seq(0,24,0.1), title = 'Pembrolizumab - Standard Parametric Models')
 
+# AIC, BIC
+aic_bic_summary_Pem_param <- data.frame(AIC = sapply(m_Pem_param$models, AIC), BIC = sapply(m_Pem_param$models, BIC))
+
+print(aic_bic_summary_Pem_param)
+
 # 1.2. 1-knot cubic spline model
 m_Pem_spline_1_hazard <- flexsurvspline(formula = formula, data = OS.Pem, scale = 'hazard', k = 1)
 m_Pem_spline_1_odds <- flexsurvspline(formula = formula, data = OS.Pem, scale = 'odds', k = 1)
 
-# AIC, BIC
 models <- list(
   '1-knot spline hazard' = m_Pem_spline_1_hazard,
   '1-knot spline odds' = m_Pem_spline_1_odds
 )
-
-aic_bic_summary_Pem_spline_1 <- do.call(rbind, lapply(names(models), function(model_name) {
-  data.frame(row.names = model_name, AIC = AIC(models[[model_name]]), BIC = BIC(models[[model_name]]))
-}))
-
-print(aic_bic_summary_Pem_spline_1)
 
 # Visual inspection of hazard
 plot_hazard(models_to_plot = models, haz = haz_Pem, title = 'Pembrolizumab - 1-Knot Cubic Spline Models')
@@ -90,23 +83,23 @@ plot_hazard(models_to_plot = models, haz = haz_Pem, title = 'Pembrolizumab - 1-K
 # Visual inspection of survival
 plot_survival(models_to_plot = models, km = km_Pem, time_points = seq(0,24,0.1), title = 'Pembrolizumab - 1-Knot Cubic Spline Models')
 
+# AIC, BIC
+aic_bic_summary_Pem_spline_1 <- do.call(rbind, lapply(names(models), function(model_name) {
+  data.frame(row.names = model_name, AIC = AIC(models[[model_name]]), BIC = BIC(models[[model_name]]))
+}))
+
+print(aic_bic_summary_Pem_spline_1)
+
 # 1.3. 2-knot cubic spline model
 m_Pem_spline_2_hazard <- flexsurvspline(formula = formula, data = OS.Pem, scale = 'hazard', k = 2)
 m_Pem_spline_2_odds <- flexsurvspline(formula = formula, data = OS.Pem, scale = 'odds', k = 2)
 m_Pem_spline_2_normal <- flexsurvspline(formula = formula, data = OS.Pem, scale = 'normal', k = 2)
 
-# AIC, BIC
 models <- list(
   '2-knot spline hazard' = m_Pem_spline_2_hazard,
   '2-knot spline odds' = m_Pem_spline_2_odds,
   '2-knot spline normal' = m_Pem_spline_2_normal
 )
-
-aic_bic_summary_Pem_spline_2 <- do.call(rbind, lapply(names(models), function(model_name) {
-  data.frame(row.names = model_name, AIC = AIC(models[[model_name]]), BIC = BIC(models[[model_name]]))
-}))
-
-print(aic_bic_summary_Pem_spline_2)
 
 # Visual inspection of hazard
 plot_hazard(models_to_plot = models, haz = haz_Pem, title = 'Pembrolizumab - 2-Knot Cubic Spline Models')
@@ -114,32 +107,37 @@ plot_hazard(models_to_plot = models, haz = haz_Pem, title = 'Pembrolizumab - 2-K
 # Visual inspection of survival
 plot_survival(models_to_plot = models, km = km_Pem, time_points = seq(0,24,0.1), title = 'Pembrolizumab - 2-Knot Cubic Spline Models')
 
+# AIC, BIC
+aic_bic_summary_Pem_spline_2 <- do.call(rbind, lapply(names(models), function(model_name) {
+  data.frame(row.names = model_name, AIC = AIC(models[[model_name]]), BIC = BIC(models[[model_name]]))
+}))
+
+print(aic_bic_summary_Pem_spline_2)
+
 # 1.4. 3-knot cubic spline model
 m_Pem_spline_3_hazard <- flexsurvspline(formula = formula, data = OS.Pem, scale = 'hazard', k = 3)
 m_Pem_spline_3_odds <- flexsurvspline(formula = formula, data = OS.Pem, scale = 'odds', k = 3)
 m_Pem_spline_3_normal <- flexsurvspline(formula = formula, data = OS.Pem, scale = 'normal', k = 3)
 
-# AIC, BIC
 models <- list(
   '3-knot spline hazard' = m_Pem_spline_3_hazard,
   '3-knot spline odds' = m_Pem_spline_3_odds,
   '3-knot spline normal' = m_Pem_spline_3_normal
 )
 
-aic_bic_summary_Pem_spline_3 <- do.call(rbind, lapply(names(models), function(model_name) {
-  data.frame(row.names = model_name, AIC = AIC(models[[model_name]]), BIC = BIC(models[[model_name]]))
-}))
-
-print(aic_bic_summary_Pem_spline_3)
-
-# write.csv(rbind(aic_bic_summary_Pem_param, aic_bic_summary_Pem_spline_1, aic_bic_summary_Pem_spline_2, aic_bic_summary_Pem_spline_3), 
-#           'tables/model selection/aic_bic_int_pem_selection.csv', row.names = T)
-
 # Visual inspection of hazard
 plot_hazard(models_to_plot = models, haz = haz_Pem, title = 'Pembrolizumab - 3-Knot Cubic Spline Models')
 
 # Visual inspection of survival
 plot_survival(models_to_plot = models, km = km_Pem, time_points = seq(0, 24, 0.1), title = 'Pembrolizumab - 3-Knot Cubic Spline Models')
+
+# AIC, BIC
+aic_bic_summary_Pem_spline_3 <- do.call(rbind, lapply(names(models), function(model_name) {
+  data.frame(row.names = model_name, AIC = AIC(models[[model_name]]), BIC = BIC(models[[model_name]]))
+}))
+
+print(aic_bic_summary_Pem_spline_3)
+# write.csv(rbind(aic_bic_summary_Pem_param, aic_bic_summary_Pem_spline_1, aic_bic_summary_Pem_spline_2, aic_bic_summary_Pem_spline_3), 'tables/model selection/aic_bic_int_pem_selection.csv', row.names = T)
 
 # 2. Internal model for Ipilimumab arm 
 # Non-parametric smoothed hazard - increasing then decreasing
@@ -149,41 +147,34 @@ plot(haz_Ipi, xlab='Time (months)', main='Ipilimumab - Smoothed Hazard')
 # 2.1. Standard parametric model
 m_Ipi_param <- fit.models(formula = formula, data = OS.Ipi, distr = mods)
 
-# AIC, BIC
-aic_bic_summary_Ipi_param <- data.frame(AIC = sapply(m_Ipi_param$models, AIC), BIC = sapply(m_Ipi_param$models, BIC))
-print(aic_bic_summary_Ipi_param)
-
-# Visual inspection of hazard
 models <- list(
   'Generalised Gamma' = m_Ipi_param$models$`Gen. Gamma`,
   'Log-Logistic' = m_Ipi_param$models$`log-Logistic`,
   'Log-Normal' = m_Ipi_param$models$`log-Normal`
 )
 
+# Visual inspection of hazard
 plot_hazard(models_to_plot = models, haz = haz_Ipi, title = 'Ipilimumab - Standard Parametric Models')
 
 # Visual inspection of survival
 km_Ipi <- survfit(Surv(Time, Event) ~ Treatment, data = OS.Ipi)
 plot_survival(models_to_plot = models, km = km_Ipi, time_points = seq(0,24,0.1), title = 'Ipilimumab - Standard Parametric Models')
 
+# AIC, BIC
+aic_bic_summary_Ipi_param <- data.frame(AIC = sapply(m_Ipi_param$models, AIC), BIC = sapply(m_Ipi_param$models, BIC))
+
+print(aic_bic_summary_Ipi_param)
+
 # 2.2 1-knot spline model
 m_Ipi_spline_1_hazard <- flexsurvspline(formula = formula, data = OS.Ipi, scale = 'hazard', k = 1)
 m_Ipi_spline_1_odds <- flexsurvspline(formula = formula, data = OS.Ipi, scale = 'odds', k = 1)
 m_Ipi_spline_1_normal <- flexsurvspline(formula = formula, data = OS.Ipi, scale = 'normal', k = 1)
 
-# AIC, BIC
 models <- list(
   '1-knot spline hazard' = m_Ipi_spline_1_hazard,
   '1-knot spline odds' = m_Ipi_spline_1_odds,
   '1-knot spline normal' = m_Ipi_spline_1_normal
 )
-
-aic_bic_summary_Ipi_spline_1 <- do.call(rbind, lapply(names(models), function(model_name) {
-  data.frame(row.names = model_name, AIC = AIC(models[[model_name]]), BIC = BIC(models[[model_name]]))
-}))
-
-# write.csv(rbind(aic_bic_summary_Ipi_param, aic_bic_summary_Ipi_spline_1), 
-          'tables/model selection/aic_bic_int_ipi_selection.csv', row.names = T)
 
 # Visual inspection of hazard
 plot_hazard(models_to_plot = models, haz = haz_Ipi, title = 'Ipilimumab - 1-Knot Cubic Spline Models')
@@ -191,10 +182,18 @@ plot_hazard(models_to_plot = models, haz = haz_Ipi, title = 'Ipilimumab - 1-Knot
 # Visual inspection of survival
 plot_survival(models_to_plot = models, km = km_Ipi, time_points = seq(0, 24, 0.1), title = 'Ipilimumab - 1-Knot Cubic Spline Models')
 
+# AIC, BIC
+aic_bic_summary_Ipi_spline_1 <- do.call(rbind, lapply(names(models), function(model_name) {
+  data.frame(row.names = model_name, AIC = AIC(models[[model_name]]), BIC = BIC(models[[model_name]]))
+}))
+
+print(aic_bic_summary_Ipi_spline_1)
+# write.csv(rbind(aic_bic_summary_Ipi_param, aic_bic_summary_Ipi_spline_1), 'tables/model selection/aic_bic_int_ipi_selection.csv', row.names = T)
+
 # 3. External model for both arms
 haz_Scha <- muhaz(OS.Scha$Time, OS.Scha$Event, bw.smooth = 6)
 plot(haz_Scha, xlab='Time (months)', main='Schadendorf Study (2015) -  Smoothed Hazard')
-abline(v = 12, col = 'grey', lty = 2)
+abline(v = 13.85, col = 'grey', lty = 2)
 
 # 3.1. Rebased standard parametric model
 rebased_time <- 13.85 # rebased_time = median follow-up of KEYNOTE006 IA2
@@ -202,12 +201,6 @@ OS.Scha.rebased <- subset(OS.Scha, Time > rebased_time)
 OS.Scha.rebased$Time <-  OS.Scha.rebased$Time - rebased_time
 m_Scha_rebased = fit.models(formula = formula, data = OS.Scha.rebased, distr = mods)
 
-# AIC, BIC
-aic_bic_summary_Scha_rebased <- data.frame(AIC = sapply(m_Scha_rebased$models, AIC), BIC = sapply(m_Scha_rebased$models, BIC))
-print(aic_bic_summary_Scha_rebased)
-# write.csv(aic_bic_summary_Scha_rebased, 'tables/model selection/aic_bic_ext_selection.csv', row.names = T)
-
-# Visual inspection of hazard
 models <- list(
   'Rebased Weibull' = m_Scha_rebased$models$`Weibull (AFT)`,
   'Rebased Gompertz' = m_Scha_rebased$models$Gompertz,
@@ -216,13 +209,19 @@ models <- list(
   'Rebased Lognormal' = m_Scha_rebased$models$`log-Normal`
 )
 
-# Visual inspection of survival
+# Visual inspection of hazard
 plot_rebased_hazard(models_to_plot = models, haz = haz_Scha, rebased_time = rebased_time, title = 
                     'Schadendorf (2015) - Hazard of Parametric Models Rebased at 13.85 Months')
 
+# Visual inspection of survival
 km_Scha <- survfit(Surv(Time, Event) ~ 1, data = OS.Scha)
 plot_rebased_survival(models_to_plot = models, km = km_Scha, rebased_time = rebased_time, time_points = seq(0, 84, by = 0.1), 
                       title = 'Schadendorf (2015) - Survival of Parametric Models Rebased at 13.85 Months')
+
+# AIC, BIC
+aic_bic_summary_Scha_rebased <- data.frame(AIC = sapply(m_Scha_rebased$models, AIC), BIC = sapply(m_Scha_rebased$models, BIC))
+print(aic_bic_summary_Scha_rebased)
+# write.csv(aic_bic_summary_Scha_rebased, 'tables/model selection/aic_bic_ext_selection.csv', row.names = T)
 
 # 4. Blended method implementation
 # Selected models
@@ -256,19 +255,11 @@ hazplot_Ipi_blended <- plot_blended_hazard(h_Ipi_blended, h_Ipi_selected, h_Scha
 hazplot_blended <- ggarrange(hazplot_Pem_blended, hazplot_Ipi_blended)
 
 # 5. Comparison of extrapolated hazard and survival curves (blended method vs updated 7-year data vs TA366 base case)
-# 5.1. Smoothed hazard of updated 7-year data
-haz_Pem_7y <- muhaz(OS.Pem.7y$Time, OS.Pem.7y$Event, bw.smooth=6, max.time=84, n.est.grid=841)
-haz_Ipi_7y <- muhaz(OS.Ipi.7y$Time, OS.Ipi.7y$Event, bw.smooth=6, max.time=84, n.est.grid=841)
-
-# 5.2. Reproduce TA366 base case (the best standard parametric model rebased at 12 months - rebased Gompertz)
+# 5.1. Reproduce TA366 base case (the best standard parametric model rebased at 12 months - rebased Gompertz)
 rebased_time_TA366 <- 12
 OS.Scha.rebased_TA366 <- subset(OS.Scha, Time > rebased_time_TA366)
 OS.Scha.rebased_TA366$Time <-  OS.Scha.rebased_TA366$Time - rebased_time_TA366
 m_Scha_rebased_TA366 = fit.models(formula = formula, data = OS.Scha.rebased_TA366, distr = mods) 
-
-aic_bic_summary_Scha_rebased_TA366 <- data.frame(AIC = sapply(m_Scha_rebased_TA366$models, AIC), BIC = sapply(m_Scha_rebased_TA366$models, BIC))
-
-# write.csv(aic_bic_summary_Scha_rebased_TA366, 'tables/model selection/aic_bic_TA366_selection.csv', row.names = T)
 
 models <- list(
   'Rebased Weibull' = m_Scha_rebased_TA366$models$`Weibull (AFT)`,
@@ -284,15 +275,19 @@ hazplot_TA366_selection <- plot_rebased_hazard(models_to_plot = models, haz = ha
 survplot_TA366_selection <- plot_rebased_survival(models_to_plot = models, km = km_Scha, rebased_time = rebased_time_TA366, time_points = seq(0,84,by=0.1), 
                       title = 'Schadendorf (2015) - Survival of Parametric Models Rebased at 12 Months')
 
-# Extract hazard of TA366
+aic_bic_summary_Scha_rebased_TA366 <- data.frame(AIC = sapply(m_Scha_rebased_TA366$models, AIC), BIC = sapply(m_Scha_rebased_TA366$models, BIC))
+# write.csv(aic_bic_summary_Scha_rebased_TA366, 'tables/model selection/aic_bic_TA366_selection.csv', row.names = T)
+
+# 5.2. Comparison at hazard scale (blended vs updated vs TA366)
+haz_Pem_7y <- muhaz(OS.Pem.7y$Time, OS.Pem.7y$Event, bw.smooth=6, max.time=84, n.est.grid=841)
+haz_Ipi_7y <- muhaz(OS.Ipi.7y$Time, OS.Ipi.7y$Event, bw.smooth=6, max.time=84, n.est.grid=841)
 h_TA366 <- extract_survival_hazard(m_Scha_rebased_TA366$models$Gompertz, t_seq, rebased_time_TA366)$h
 
-# 5.3. Comparison at hazard scale (blended vs updated vs TA366)
 hazplot_Pem_comparison <- plot_hazard_comparison(h_Pem_blended, haz_Pem_7y, h_TA366, rebased_time_TA366, t1, t2, 'Pembrolizumab')
 hazplot_Ipi_comparison <- plot_hazard_comparison(h_Ipi_blended, haz_Ipi_7y, h_TA366, rebased_time_TA366, t1, t2, 'Ipilimumab')
 hazplot_comparison <-  ggarrange(hazplot_Pem_comparison, hazplot_Ipi_comparison)
 
-# 5.4. Comparison at survival scale (blended vs updated vs TA366)
+# 5.3. Comparison at survival scale (blended vs updated vs TA366)
 # KM of 7-year follow-up data
 km_Pem_7y <- survfit(Surv(Time, Event)~Treatment, data=OS.Pem.7y)
 km_Ipi_7y <- survfit(Surv(Time, Event)~Treatment, data=OS.Ipi.7y)
