@@ -346,6 +346,7 @@ RMST_table <- matrix(
 
 colnames(RMST_table) <- c('Pembrolizumab RMST 7y', 'Ipilimumab RMST 7y', 'Incremental RMST 7y')
 rownames(RMST_table) <- c('Blended Method', '7-Year Updated', 'TA366 Base Case')
+print(RMST_table)
 
 # Save output figures and tables
 if (t1 == 24 & t2 == 60 & a == 5 & b == 5){
