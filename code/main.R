@@ -141,7 +141,7 @@ plot_hazard(models_to_plot = models, haz = haz_Pem, title = 'Pembrolizumab - 3-K
 # Visual inspection of survival
 plot_survival(models_to_plot = models, km = km_Pem, time_points = seq(0, 24, 0.1), title = 'Pembrolizumab - 3-Knot Cubic Spline Models')
 
-# 2. Internal model for Ipilimumab arm
+# 2. Internal model for Ipilimumab arm 
 # Non-parametric smoothed hazard - increasing then decreasing
 haz_Ipi <- muhaz(OS.Ipi$Time, OS.Ipi$Event, bw.smooth = 3)
 plot(haz_Ipi, xlab='Time (months)', main='Ipilimumab - Smoothed Hazard')
