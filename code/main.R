@@ -132,8 +132,8 @@ aic_bic_summary_Pem_spline_3 <- do.call(rbind, lapply(names(models), function(mo
 
 print(aic_bic_summary_Pem_spline_3)
 
-write.csv(rbind(aic_bic_summary_Pem_param, aic_bic_summary_Pem_spline_1, aic_bic_summary_Pem_spline_2, aic_bic_summary_Pem_spline_3), 
-          'tables/model selection/aic_bic_int_pem_selection.csv', row.names = T)
+# write.csv(rbind(aic_bic_summary_Pem_param, aic_bic_summary_Pem_spline_1, aic_bic_summary_Pem_spline_2, aic_bic_summary_Pem_spline_3), 
+#           'tables/model selection/aic_bic_int_pem_selection.csv', row.names = T)
 
 # Visual inspection of hazard
 plot_hazard(models_to_plot = models, haz = haz_Pem, title = 'Pembrolizumab - 3-Knot Cubic Spline Models')
@@ -182,7 +182,7 @@ aic_bic_summary_Ipi_spline_1 <- do.call(rbind, lapply(names(models), function(mo
   data.frame(row.names = model_name, AIC = AIC(models[[model_name]]), BIC = BIC(models[[model_name]]))
 }))
 
-write.csv(rbind(aic_bic_summary_Ipi_param, aic_bic_summary_Ipi_spline_1), 
+# write.csv(rbind(aic_bic_summary_Ipi_param, aic_bic_summary_Ipi_spline_1), 
           'tables/model selection/aic_bic_int_ipi_selection.csv', row.names = T)
 
 # Visual inspection of hazard
@@ -205,7 +205,7 @@ m_Scha_rebased = fit.models(formula = formula, data = OS.Scha.rebased, distr = m
 # AIC, BIC
 aic_bic_summary_Scha_rebased <- data.frame(AIC = sapply(m_Scha_rebased$models, AIC), BIC = sapply(m_Scha_rebased$models, BIC))
 print(aic_bic_summary_Scha_rebased)
-write.csv(aic_bic_summary_Scha_rebased, 'tables/model selection/aic_bic_ext_selection.csv', row.names = T)
+# write.csv(aic_bic_summary_Scha_rebased, 'tables/model selection/aic_bic_ext_selection.csv', row.names = T)
 
 # Visual inspection of hazard
 models <- list(
@@ -234,8 +234,8 @@ rebased_time <- 13.85
 # Parameters for blended method
 t1 <- 14
 t2 <- 60
-a <- 0.2
-b <- 0.2
+a <- 3
+b <- 7
 
 # Time points
 time_horizon <- 84 
@@ -268,7 +268,7 @@ m_Scha_rebased_TA366 = fit.models(formula = formula, data = OS.Scha.rebased_TA36
 
 aic_bic_summary_Scha_rebased_TA366 <- data.frame(AIC = sapply(m_Scha_rebased_TA366$models, AIC), BIC = sapply(m_Scha_rebased_TA366$models, BIC))
 
-write.csv(aic_bic_summary_Scha_rebased_TA366, 'tables/model selection/aic_bic_TA366_selection.csv', row.names = T)
+# write.csv(aic_bic_summary_Scha_rebased_TA366, 'tables/model selection/aic_bic_TA366_selection.csv', row.names = T)
 
 models <- list(
   'Rebased Weibull' = m_Scha_rebased_TA366$models$`Weibull (AFT)`,
