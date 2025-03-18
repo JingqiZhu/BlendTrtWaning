@@ -46,7 +46,7 @@ haz_Pem <- muhaz(OS.Pem$Time, OS.Pem$Event)
 plot(haz_Pem, xlab = 'Time (months)', main = 'Pembrolizumab - Smoothed Hazard')
 
 # 1.1. Standard parametric model
-formula <- Surv(Time,Event) ~ 1
+formula <- Surv(Time, Event) ~ 1
 mods <- c('exp', 'weibull', 'gompertz', 'gengamma', 'loglogistic', 'lognormal')
 m_Pem_param <- fit.models(formula = formula, data = OS.Pem, distr = mods)
 
