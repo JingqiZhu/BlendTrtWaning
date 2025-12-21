@@ -42,6 +42,7 @@ BlendTrtWaning
     ##                           AIC      BIC
     ## 1-knot spline hazard 833.5956 844.4677
     ## 1-knot spline odds   832.8660 843.7381
+    ## 1-knot spline normal 832.4949 843.3670
 
 ### 1.3. 2-knot cubic spline models
 
@@ -110,7 +111,7 @@ decreasing
 normal  
 **Selected internal model for ipilimumab arm:** generalised Gamma  
 **Selected external model for both arms:** Gompertz model rebased at
-13.85 months
+13.84 months
 
 **Configuration of parameters**  
 **Blending interval:** (24 months, 60 months)  

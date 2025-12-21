@@ -34,7 +34,7 @@ load('../data/digitised_data.Rdata')
 - **Internal data:** KEYNOTE-006 trial IA2 (2015)
 - **External data:** Schadendorf pooled analysis of ipilimumab-treatment naive population (2015)
 
-```{r km visusalisatoin}
+```{r km visusalisatoin, message=FALSE}
 # KM of internal data (KEYNOTE-006 IA2)
 OS.int <- rbind(OS.Pem, OS.Ipi)
 OS.int$Treatment <- factor(OS.int$Treatment, levels = c('Pembrolizumab', 'Ipilimumab'))
@@ -107,10 +107,14 @@ print(aic_bic_summary_Pem_param)
 # 1-knot cubic spline models
 m_Pem_spline_1_hazard <- flexsurvspline(formula = formula, data = OS.Pem, scale = 'hazard', k = 1)
 m_Pem_spline_1_odds <- flexsurvspline(formula = formula, data = OS.Pem, scale = 'odds', k = 1)
+# Error in optim using 'BFGS', thus changing to 'Nelder-Mead'
+m_Pem_spline_1_normal <- flexsurvspline(formula = formula, data = OS.Pem, scale = 'normal', k = 1, method = "Nelder-Mead")
+
 
 models <- list(
   '1-knot spline hazard' = m_Pem_spline_1_hazard,
-  '1-knot spline odds' = m_Pem_spline_1_odds
+  '1-knot spline odds' = m_Pem_spline_1_odds,
+  '1-knot spline normal' = m_Pem_spline_1_normal
 )
 
 # Visual inspection of hazard
@@ -287,7 +291,7 @@ print(aic_bic_summary_Scha_rebased)
 **Selected models**  
 **Selected internal model for pembrolizumab arms:** 3-knot spline normal  
 **Selected internal model for ipilimumab arm:** generalised Gamma  
-**Selected external model for both arms:** Gompertz model rebased at 13.85 months  
+**Selected external model for both arms:** Gompertz model rebased at 13.84 months  
 
 **Configuration of parameters**  
 **Blending interval:** (24 months, 60 months)  
@@ -315,8 +319,8 @@ t_seq <- seq(0, time_horizon, dt)
 h_Pem_selected <- extract_survival_hazard(m_Pem_selected, t_seq)$h
 h_Ipi_selected <- extract_survival_hazard(m_Ipi_selected, t_seq)$h
 h_Scha_selected <- extract_survival_hazard(m_Scha_selected, t_seq, rebased_time)$h
-h_Pem_blended <- compute_blended_hazard(h_Pem_selected, h_Scha_selected, rebased_time, t1, t2, a, b, t_seq) 
-h_Ipi_blended <- compute_blended_hazard(h_Ipi_selected, h_Scha_selected, rebased_time, t1, t2, a, b, t_seq)
+h_Pem_blended <- compute_blended_hazard(h_Pem_selected, h_Scha_selected, t1, t2, a, b, t_seq) 
+h_Ipi_blended <- compute_blended_hazard(h_Ipi_selected, h_Scha_selected, t1, t2, a, b, t_seq)
 h_Ipi_blended$est[1] <- 0
 
 # Plot blended hazard (vs fitted internal & external hazard)
