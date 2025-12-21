@@ -2,7 +2,7 @@
 
 This repository contains the data and code used to generate the results for the paper: **Flexible Survival Extrapolation with Blended Hazards: Accounting for Treatment Effect Waning in Health Technology Assessment**. 
 
-This work demonstrates the blended hazard method as a flexible way to account for treatment effect waning while incorporating external evidence in survival extrapolation.
+This work presents the blended hazard method as a flexible way to account for treatment effect waning while incorporating external evidence in survival extrapolation. NICE TA366 is used as a demonstrating case study.
 
 ![base_case_surv_compare](figures/base%20case/survplot_comparison_24_60_5_5.png)
 
