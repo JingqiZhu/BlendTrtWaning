@@ -11,6 +11,7 @@ plot_hazard <- function(models_to_plot, haz, title){
       scale_colour_manual(name = '', values = c('Smoothed Hazard' = 'black', 'Model Fit' = '#377EB8')) +
       geom_vline(xintercept = 13.85, linetype = 'dashed') +
       xlab('Time (months)') + ylab('Hazard') + ylim(0, 0.085) + theme_classic() +
+      scale_x_continuous(limits = c(0,20), breaks = seq(0, 20, by=4)) +
       theme(legend.position = 'top', legend.direction = 'horizontal') +
       ggtitle(model_name)
   })
@@ -26,16 +27,23 @@ plot_survival <- function(models_to_plot, km, time_points, title){
     surv_data$Model <- model_name  
     return(surv_data)
   })
-  surv_df <- rbind(do.call(rbind, survival_estimates), km_df)
+  surv_df <- rbind(do.call(rbind, survival_estimates))
   brewer_palette <- brewer.pal(length(models_to_plot), 'Set1')[1:length(models_to_plot)]
   model_colors <- setNames(brewer_palette, names(models_to_plot))
   model_colors <- c('Kaplan-Meier' = 'black', model_colors)
-  plot <- ggplot(surv_df, aes(x = time, y = est, color = Model)) +
-    geom_line(linewidth = 1) +  
-    scale_color_manual(values = model_colors) +
-    xlab('Time (months)') + ylab('Overall Survival') + 
-    ylim(0,1) + scale_x_continuous(limits = c(0,24), breaks = seq(0,24,by=4)) +
-    ggtitle(title) + theme_classic() + theme(legend.position = 'top')
+  
+  plot <- ggplot() +
+    geom_step(data = km_df, aes(x = time, y = est, color = "Kaplan-Meier"),
+              linewidth = 1) +
+    geom_line(data = surv_df, aes(x = time, y = est, color = Model),
+              linewidth = 1) +
+    scale_color_manual(name = '', values = model_colors) +
+    xlab("Time (months)") + ylab("Overall Survival") +
+    ylim(0, 1) +
+    scale_x_continuous(limits = c(0, 20), breaks = seq(0, 20, by = 4)) +
+    ggtitle(title) +
+    theme_classic() +
+    theme(legend.position = "top")
   return(plot)
 }
 
@@ -65,8 +73,15 @@ plot_rebased_hazard <- function(models_to_plot, haz, rebased_time, title) {
     nrow <- 2
     ncol <- ceiling(num_models / 2) 
   }
-  annotate_figure(ggarrange(plotlist = hazard_plots, nrow = nrow, ncol = ncol), 
-                          top = text_grob(title, face = 'bold'))
+  #annotate_figure(ggarrange(plotlist = hazard_plots, nrow = nrow, ncol = ncol), 
+  #                        top = text_grob(title, face = 'bold'))
+  #return(plot)
+  combined_plot <- annotate_figure(
+    ggarrange(plotlist = hazard_plots, nrow = nrow, ncol = ncol),
+    top = text_grob(title, face = 'bold')
+  )
+
+  return(combined_plot)
 }
 
 # Function to plot rebased survival
@@ -81,20 +96,31 @@ plot_rebased_survival <- function(models_to_plot, km, rebased_time, time_points,
     surv_data <- surv_data[surv_data$time >= rebased_time, ] # Keep only values where time >= rebased_time
     return(surv_data)
   })
-  surv_df <- rbind(do.call(rbind, survival_estimates), km_df)
+  surv_df <- rbind(do.call(rbind, survival_estimates))
   
   num_models <- length(models_to_plot)
   brewer_palette <- brewer.pal(max(3, num_models), 'Set1')[1:num_models]
   model_colors <- setNames(brewer_palette, names(models_to_plot))
   model_colors <- c('Kaplan-Meier' = 'black', model_colors)
   
-  plot <- ggplot(surv_df, aes(x = time, y = est, color = Model)) +
-    geom_line(linewidth = 1) +  
-    geom_vline(xintercept = rebased_time, linetype = 'dashed') +
-    scale_color_manual(values = model_colors) +
-    xlab('Time (months)') + ylab('Overall Survival') + 
-    ylim(0,1) + scale_x_continuous(limits = c(0,84), breaks = seq(0,84,by=4)) +
-    ggtitle(title) + theme_classic() + theme(legend.position = 'top')
+  plot <- ggplot() +
+    geom_step(data = km_df,
+              aes(x = time, y = est, color = "Kaplan-Meier"),
+              linewidth = 1) +
+    
+    geom_line(data = surv_df,
+              aes(x = time, y = est, color = Model),
+              linewidth = 1) +
+    
+    geom_vline(xintercept = rebased_time, linetype = "dashed") +
+    scale_color_manual(name = '', values = model_colors) +
+    xlab("Time (months)") + ylab("Overall Survival") +
+    ylim(0, 1) +
+    scale_x_continuous(limits = c(0, 84), breaks = seq(0, 84, by = 4)) +
+    ggtitle(title) +
+    theme_classic() +
+    theme(legend.position = "top")
+  
   return(plot)
 }
 
@@ -158,7 +184,7 @@ plot_survival_selected <- function(m_Pem, m_Ipi, m_Scha, rebased_time, t_seq){
 }
 
 # Function to compute blended hazard 
-compute_blended_hazard <- function(h_int, h_ext, rebased_time, t1, t2, a, b, t_seq) {
+compute_blended_hazard <- function(h_int, h_ext, t1, t2, a, b, t_seq) {
   weight <- pbeta((t_seq - t1) / (t2 - t1), shape1 = a, shape2 = b)
   h_blended_est <- (1 - weight) * h_int$est + weight * h_ext$est
   
@@ -168,26 +194,26 @@ compute_blended_hazard <- function(h_int, h_ext, rebased_time, t1, t2, a, b, t_s
 # Function to plot blended hazard (vs fitted internal & external hazard)
 plot_blended_hazard <- function(h_blended, h_int, h_ext, rebased_time, t1, t2, title) {
   ggplot() +
-    geom_line(data = h_blended, aes(x = time, y = est, color = 'Blended Hazard'), linewidth = 1) + 
-    geom_line(data = h_int, aes(x = time, y = est, color = 'Fitted Internal Hazard'), linewidth = 1, linetype = 'dashed') +
-    geom_line(data = subset(h_ext, time >= rebased_time), aes(x = time, y = est, color = 'Fitted External Hazard'), linewidth = 1, linetype = 'dashed') +
+    geom_line(data = h_blended, aes(x = time, y = est, color = 'Blended hazard'), linewidth = 1) + 
+    geom_line(data = h_int, aes(x = time, y = est, color = 'Fitted internal hazard'), linewidth = 1, linetype = 'dashed') +
+    geom_line(data = subset(h_ext, time >= rebased_time), aes(x = time, y = est, color = 'Fitted external hazard'), linewidth = 1, linetype = 'dashed') +
     geom_vline(xintercept = c(t1, t2), linetype='dashed', color = 'grey') +
     scale_x_continuous(limits = c(0, 84), breaks = seq(0, 84, 12)) + ylim(0, 0.065) +
     scale_color_brewer(palette = 'Set1', name = 'Model') +
-    theme_classic() + theme(legend.position = c(0.75, 0.8), text = element_text(size = 12), legend.key.width = unit(1, 'cm')) +
+    theme_classic() + theme(legend.position = c(0.75, 0.8), text = element_text(size = 11), legend.key.width = unit(1, 'cm')) +
     labs(title = title, x = 'Time (months)', y = 'Hazard')
 }
 
 # Function to compare blended hazard vs smoothed updated hazard vs TA366 estimated hazard
 plot_hazard_comparison <- function(h_blended, haz_updated, h_TA366, rebased_time, t1, t2, title) {
   ggplot() +
-    geom_line(data = h_blended, aes(x = time, y = est, color = 'Blended Model'), linewidth = 1) + 
-    geom_line(aes(haz_updated$est.grid, haz_updated$haz.est, color='Updated Data'), linewidth = 1) +
-    geom_line(data = subset(h_TA366, time >= rebased_time_TA366), aes(x = time, y = est, color = 'TA366 Base Case'), linewidth = 1) +
+    geom_line(data = h_blended, aes(x = time, y = est, color = 'Blended hazard method'), linewidth = 1) + 
+    geom_line(aes(haz_updated$est.grid, haz_updated$haz.est, color='Smoothed hazard of updated data'), linewidth = 1) +
+    geom_line(data = subset(h_TA366, time >= rebased_time_TA366), aes(x = time, y = est, color = 'Piecewise method in TA366 base case'), linewidth = 1) +
     geom_vline(xintercept = c(t1, t2), color = 'grey', linetype = 'dashed') +
     scale_x_continuous(limits = c(0, 84), breaks = seq(0, 84, 12)) + ylim(0, 0.065) +
     scale_color_brewer(palette = 'Set1', name = 'Model') +
-    theme_classic() + theme(legend.position = c(0.75, 0.8), text = element_text(size = 12), legend.key.width = unit(1, 'cm')) +
+    theme_classic() + theme(legend.position = c(0.7, 0.8), text = element_text(size = 10), legend.key.width = unit(1, 'cm')) +
     labs(title = title, x = 'Time (months)', y = 'Hazard')
 }
 
@@ -195,14 +221,14 @@ plot_hazard_comparison <- function(h_blended, haz_updated, h_TA366, rebased_time
 plot_survival_comparison <- function(S_Pem_blended, S_Ipi_blended, km_Pem_updated, km_Ipi_updated, S_Pem_TA366, S_Ipi_TA366, rebased_time_TA366, t_seq){
   ggplot() +
     # Blended survival estimates
-    geom_line(aes(x = t_seq, y = S_Pem_blended, color = 'Blended Model', linetype = 'Pembrolizumab'), linewidth = 1) +
-    geom_line(aes(x = t_seq, y = S_Ipi_blended, color = 'Blended Model', linetype = 'Ipilimumab'), linewidth = 1) +
+    geom_line(aes(x = t_seq, y = S_Pem_blended, color = 'Blended hazard method', linetype = 'Pembrolizumab'), linewidth = 1) +
+    geom_line(aes(x = t_seq, y = S_Ipi_blended, color = 'Blended hazard method', linetype = 'Ipilimumab'), linewidth = 1) +
     # Updated Kaplan-Meier
-    geom_line(aes(x = km_Pem_7y$time, y = km_Pem_7y$surv, color = 'Updated Kaplan-Meier', linetype = 'Pembrolizumab'), linewidth = 1) +
-    geom_line(aes(x = km_Ipi_7y$time, y = km_Ipi_7y$surv, color = 'Updated Kaplan-Meier', linetype = 'Ipilimumab'), linewidth = 1) +
+    geom_step(aes(x = km_Pem_updated$time, y = km_Pem_updated$surv, color = 'Updated Kaplan-Meier', linetype = 'Pembrolizumab'), linewidth = 1) +
+    geom_step(aes(x = km_Ipi_updated$time, y = km_Ipi_updated$surv, color = 'Updated Kaplan-Meier', linetype = 'Ipilimumab'), linewidth = 1) +
     # TA366 base case 
-    geom_line(aes(x = t_seq, y = S_Pem_TA366, color = 'TA366 Base Case', linetype = 'Pembrolizumab'), linewidth = 1) +
-    geom_line(aes(x = t_seq, y = S_Ipi_TA366, color = 'TA366 Base Case', linetype = 'Ipilimumab'), linewidth = 1) +
+    geom_line(aes(x = t_seq, y = S_Pem_TA366, color = 'Piecewise method in TA366 base case', linetype = 'Pembrolizumab'), linewidth = 1) +
+    geom_line(aes(x = t_seq, y = S_Ipi_TA366, color = 'Piecewise method in TA366 base case', linetype = 'Ipilimumab'), linewidth = 1) +
     scale_x_continuous(name = 'Time (months)', breaks = seq(0, 84, 12), limits = c(0, 84)) +
     scale_y_continuous(name = 'Overall Survival', limits = c(0, 1)) +
     scale_color_brewer(palette = 'Set1', name = 'Model') +
