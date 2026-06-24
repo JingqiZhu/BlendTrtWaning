@@ -1,6 +1,8 @@
 # BlendTrtWaning
 
-This repository contains the data and code used to generate the results for the paper: **Flexible Survival Extrapolation with Blended Hazards: Accounting for Treatment Effect Waning in Health Technology Assessment**. 
+This repository contains data and code needed to reproduce the results in the paper: **Flexible Survival Extrapolation with Blended Hazards: Accounting for Treatment Effect Waning in Health Technology Assessment**. 
+
+Citation: Zhu, J., Hemstock, M., Che, Z., Baio, G., & Birnie, R. (2026). Flexible Survival Extrapolation with Blended Hazards: Accounting for Treatment Effect Waning in Health Technology Assessment. Medical decision making. https://doi.org/10.1177/0272989X261452264
 
 This work presents the blended hazard method as a flexible way to account for treatment effect waning while incorporating external evidence in survival extrapolation. NICE TA366 is used as a demonstrating case study.
 
@@ -9,10 +11,10 @@ This work presents the blended hazard method as a flexible way to account for tr
 ## Repository Structure
 
 ```text
-├── data/                 # Digitise data from published Kaplan-Meier
+├── data/                 # Data
 ├── code/                 # R code
-├── docs/                 # Rmd document for model selection and blending process
-├── figures/              # Survival and hazard plots for base case and sensitivity analysis scenarios
+├── docs/                 # Rmd document 
+├── figures/              # Survival/hazard/HR plots for base case and sensitivity analysis scenarios
 ├── tables/               # 7-year RMST tables
 ├── BlendTrtWaning.Rproj  # Project organisation container
 ├── README.md
