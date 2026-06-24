@@ -10,7 +10,7 @@ plot_hazard <- function(models_to_plot, haz, title){
                   alpha = 0.1, fill = '#377EB8') +
       scale_colour_manual(name = '', values = c('Smoothed Hazard' = 'black', 'Model Fit' = '#377EB8')) +
       geom_vline(xintercept = 13.85, linetype = 'dashed') +
-      xlab('Time (months)') + ylab('Hazard') + ylim(0, 0.085) + theme_classic() +
+      xlab('Time (months)') + ylab('Hazard') + ylim(0, 0.09) + theme_classic() +
       scale_x_continuous(limits = c(0,20), breaks = seq(0, 20, by=4)) +
       theme(legend.position = 'top', legend.direction = 'horizontal') +
       ggtitle(model_name)
@@ -112,7 +112,7 @@ plot_rebased_survival <- function(models_to_plot, km, rebased_time, time_points,
               aes(x = time, y = est, color = Model),
               linewidth = 1) +
     
-    geom_vline(xintercept = rebased_time, linetype = "dashed") +
+    #geom_vline(xintercept = rebased_time, linetype = "dashed") +
     scale_color_manual(name = '', values = model_colors) +
     xlab("Time (months)") + ylab("Overall Survival") +
     ylim(0, 1) +
@@ -149,40 +149,6 @@ extract_survival_hazard <- function(model, t_seq, rebased_time = NULL) {
   return(list(S = S_data, h = h_data))
 }
 
-# Function to plot survival of selected models and KMs
-plot_survival_selected <- function(m_Pem, m_Ipi, m_Scha, rebased_time, t_seq){
-  # Extract fitted survival
-  S_Pem_selected <- extract_survival_hazard(m_Pem_selected, t_seq)$S
-  S_Ipi_selected <- extract_survival_hazard(m_Ipi_selected, t_seq)$S
-  S_Scha_selected <- extract_survival_hazard(m_Scha_selected, t_seq, rebased_time)$S
-  
-  # Combine fitted survival
-  model_survival_selected_df <- rbind(
-    data.frame(time = S_Pem_selected$time, est = S_Pem_selected$est, Group = 'Pembrolizumab', Type = 'Selected Model Fit'),
-    data.frame(time = S_Ipi_selected$time, est = S_Ipi_selected$est, Group = 'Ipilimumab', Type = 'Selected Model Fit'),
-    data.frame(time = S_Scha_selected$time, est = S_Scha_selected$est, Group = 'Schadendorf', Type = 'Selected Model Fit')
-  )
-  
-  # Combine Kaplan-Meier data
-  OS.int.ext <- list('Pembrolizumab' = OS.Pem, 'Ipilimumab' = OS.Ipi, 'Schadendorf' = OS.Scha)
-  km_int_ext <- lapply(OS.int.ext, function(data) survfit(Surv(Time, Event) ~ Treatment, data = data))
-  km_int_ext_df <- do.call(rbind, lapply(names(km_int_ext), function(name) {
-    km_fit <- km_int_ext[[name]]
-    data.frame(time = km_fit$time, surv = km_fit$surv, Group = name, Type = 'Kaplan-Meier')
-  }))
-  
-  # Plot 
-  ggplot() +
-    geom_line(data = km_int_ext_df, aes(x = time, y = surv, linetype = Type, color = Group), linewidth = 1) +
-    geom_line(data = model_survival_selected_df, aes(x = time, y = est, linetype = Type, color = Group), linewidth = 0.8) +
-    scale_linetype_manual(name = 'Profile', values = c('Kaplan-Meier' = 'solid', 'Selected Model Fit' = 'dashed')) +
-    scale_color_brewer(palette = 'Set1', name = 'Data') +
-    scale_x_continuous(name = 'Time (months)', breaks = seq(0, 84, 12), limits = c(0, 84)) +
-    scale_y_continuous(name = 'Overall Survival', limits = c(0, 1)) +
-    theme_classic() +
-    ggtitle('Fitted Survival of Selected Models')
-}
-
 # Function to compute blended hazard 
 compute_blended_hazard <- function(h_int, h_ext, t1, t2, a, b, t_seq) {
   weight <- pbeta((t_seq - t1) / (t2 - t1), shape1 = a, shape2 = b)
@@ -199,7 +165,14 @@ plot_blended_hazard <- function(h_blended, h_int, h_ext, rebased_time, t1, t2, t
     geom_line(data = subset(h_ext, time >= rebased_time), aes(x = time, y = est, color = 'Fitted external hazard'), linewidth = 1, linetype = 'dashed') +
     geom_vline(xintercept = c(t1, t2), linetype='dashed', color = 'grey') +
     scale_x_continuous(limits = c(0, 84), breaks = seq(0, 84, 12)) + ylim(0, 0.065) +
-    scale_color_brewer(palette = 'Set1', name = 'Model') +
+    scale_color_manual(
+      name = "Model",
+      values = c(
+        "Blended hazard" = "black", 
+        "Fitted internal hazard" = "#E41A1C",
+        "Fitted external hazard" = "#4DAF4A"
+      )
+    ) +
     theme_classic() + theme(legend.position = c(0.75, 0.8), text = element_text(size = 11), legend.key.width = unit(1, 'cm')) +
     labs(title = title, x = 'Time (months)', y = 'Hazard')
 }
@@ -209,11 +182,18 @@ plot_hazard_comparison <- function(h_blended, haz_updated, h_TA366, rebased_time
   ggplot() +
     geom_line(data = h_blended, aes(x = time, y = est, color = 'Blended hazard method'), linewidth = 1) + 
     geom_line(aes(haz_updated$est.grid, haz_updated$haz.est, color='Smoothed hazard of updated data'), linewidth = 1) +
-    geom_line(data = subset(h_TA366, time >= rebased_time_TA366), aes(x = time, y = est, color = 'Piecewise method in TA366 base case'), linewidth = 1) +
+    geom_line(data = subset(h_TA366, time >= rebased_time), aes(x = time, y = est, color = 'Piecewise method in TA366 base case'), linewidth = 1) +
     geom_vline(xintercept = c(t1, t2), color = 'grey', linetype = 'dashed') +
     scale_x_continuous(limits = c(0, 84), breaks = seq(0, 84, 12)) + ylim(0, 0.065) +
-    scale_color_brewer(palette = 'Set1', name = 'Model') +
-    theme_classic() + theme(legend.position = c(0.7, 0.8), text = element_text(size = 10), legend.key.width = unit(1, 'cm')) +
+    scale_color_manual(
+      name = "Model",
+      values = c(
+        "Blended hazard method" = "#E41A1C",
+        "Smoothed hazard of updated data" = "black",
+        "Piecewise method in TA366 base case" = "#4DAF4A"
+      )
+    ) +
+    theme_classic() + theme(legend.position = c(0.65, 0.8), text = element_text(size = 10), legend.key.width = unit(1, 'cm')) +
     labs(title = title, x = 'Time (months)', y = 'Hazard')
 }
 
@@ -231,8 +211,49 @@ plot_survival_comparison <- function(S_Pem_blended, S_Ipi_blended, km_Pem_update
     geom_line(aes(x = t_seq, y = S_Ipi_TA366, color = 'Piecewise method in TA366 base case', linetype = 'Ipilimumab'), linewidth = 1) +
     scale_x_continuous(name = 'Time (months)', breaks = seq(0, 84, 12), limits = c(0, 84)) +
     scale_y_continuous(name = 'Overall Survival', limits = c(0, 1)) +
-    scale_color_brewer(palette = 'Set1', name = 'Model') +
+    scale_color_manual(
+      name = "Model",
+      values = c(
+        "Blended hazard method" = "#E41A1C",
+        "Updated Kaplan-Meier" = "black",
+        "Piecewise method in TA366 base case" = "#4DAF4A"
+      )
+    ) +
     scale_linetype_manual(name = 'Treatment', values = c('Pembrolizumab' = 'solid', 'Ipilimumab' = 'dashed')) +
     theme_classic() +
-    theme(legend.direction = 'vertical', legend.box = 'vertical', legend.position = c(0.8, 0.75), legend.key.width = unit(1, 'cm'))
+    theme(legend.direction = 'vertical', legend.box = 'vertical', legend.position = c(0.7, 0.75), legend.key.width = unit(1, 'cm'))
 }
+
+# # Function to plot survival of selected models and KMs
+# plot_survival_selected <- function(m_Pem, m_Ipi, m_Scha, rebased_time, t_seq){
+#   # Extract fitted survival
+#   S_Pem_selected <- extract_survival_hazard(m_Pem_selected, t_seq)$S
+#   S_Ipi_selected <- extract_survival_hazard(m_Ipi_selected, t_seq)$S
+#   S_Scha_selected <- extract_survival_hazard(m_Scha_selected, t_seq, rebased_time)$S
+#   
+#   # Combine fitted survival
+#   model_survival_selected_df <- rbind(
+#     data.frame(time = S_Pem_selected$time, est = S_Pem_selected$est, Group = 'Pembrolizumab', Type = 'Selected Model Fit'),
+#     data.frame(time = S_Ipi_selected$time, est = S_Ipi_selected$est, Group = 'Ipilimumab', Type = 'Selected Model Fit'),
+#     data.frame(time = S_Scha_selected$time, est = S_Scha_selected$est, Group = 'Schadendorf', Type = 'Selected Model Fit')
+#   )
+#   
+#   # Combine Kaplan-Meier data
+#   OS.int.ext <- list('Pembrolizumab' = OS.Pem, 'Ipilimumab' = OS.Ipi, 'Schadendorf' = OS.Scha)
+#   km_int_ext <- lapply(OS.int.ext, function(data) survfit(Surv(Time, Event) ~ Treatment, data = data))
+#   km_int_ext_df <- do.call(rbind, lapply(names(km_int_ext), function(name) {
+#     km_fit <- km_int_ext[[name]]
+#     data.frame(time = km_fit$time, surv = km_fit$surv, Group = name, Type = 'Kaplan-Meier')
+#   }))
+#   
+#   # Plot 
+#   ggplot() +
+#     geom_line(data = km_int_ext_df, aes(x = time, y = surv, linetype = Type, color = Group), linewidth = 1) +
+#     geom_line(data = model_survival_selected_df, aes(x = time, y = est, linetype = Type, color = Group), linewidth = 0.8) +
+#     scale_linetype_manual(name = 'Profile', values = c('Kaplan-Meier' = 'solid', 'Selected Model Fit' = 'dashed')) +
+#     scale_color_brewer(palette = 'Set1', name = 'Data') +
+#     scale_x_continuous(name = 'Time (months)', breaks = seq(0, 84, 12), limits = c(0, 84)) +
+#     scale_y_continuous(name = 'Overall Survival', limits = c(0, 1)) +
+#     theme_classic() +
+#     ggtitle('Fitted Survival of Selected Models')
+# }
